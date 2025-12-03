@@ -95,7 +95,7 @@ if 'api_provider' not in st.session_state:
     st.session_state.api_provider = "OpenAI"
 
 # ==================== AI API INTEGRATION ====================
-def call_openai_api(prompt, api_key, model="gpt-3.5-turbo", temperature=0.7, max_tokens=500):
+def call_openai_api(prompt, api_key, model="gpt-3.5-turbo", temperature=0.7, max_tokens=800):
     """Real OpenAI API integration"""
     try:
         import openai
@@ -104,7 +104,7 @@ def call_openai_api(prompt, api_key, model="gpt-3.5-turbo", temperature=0.7, max
         response = openai.ChatCompletion.create(
             model=model,
             messages=[
-                {"role": "system", "content": "You are an expert marketing copywriter specializing in digital advertising."},
+                {"role": "system", "content": "You are an expert marketing copywriter. Always respond with ONLY valid JSON, no markdown, no explanations, no code blocks."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
@@ -118,7 +118,7 @@ def call_openai_api(prompt, api_key, model="gpt-3.5-turbo", temperature=0.7, max
         st.error(f"OpenAI API Error: {str(e)}")
         return None
 
-def call_groq_api(prompt, api_key, model="llama3-70b-8192", temperature=0.7, max_tokens=500):
+def call_groq_api(prompt, api_key, model="llama3-70b-8192", temperature=0.7, max_tokens=800):
     """Real Groq API integration"""
     try:
         from groq import Groq
@@ -127,7 +127,7 @@ def call_groq_api(prompt, api_key, model="llama3-70b-8192", temperature=0.7, max
         response = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "You are an expert marketing copywriter specializing in digital advertising."},
+                {"role": "system", "content": "You are an expert marketing copywriter. Always respond with ONLY valid JSON, no markdown, no explanations, no code blocks."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
@@ -141,7 +141,7 @@ def call_groq_api(prompt, api_key, model="llama3-70b-8192", temperature=0.7, max
         st.error(f"Groq API Error: {str(e)}")
         return None
 
-def call_anthropic_api(prompt, api_key, model="claude-3-sonnet-20240229", temperature=0.7, max_tokens=500):
+def call_anthropic_api(prompt, api_key, model="claude-3-sonnet-20240229", temperature=0.7, max_tokens=800):
     """Real Anthropic Claude API integration"""
     try:
         import anthropic
@@ -151,6 +151,7 @@ def call_anthropic_api(prompt, api_key, model="claude-3-sonnet-20240229", temper
             model=model,
             max_tokens=max_tokens,
             temperature=temperature,
+            system="You are an expert marketing copywriter. Always respond with ONLY valid JSON, no markdown, no explanations.",
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -196,86 +197,58 @@ def extract_keywords_simple(text, max_keywords=8):
 
 # ==================== CONTENT GENERATION ====================
 def generate_content_with_ai(business_type, product, audience, tone, platform, api_key, api_provider, model, temperature, max_tokens):
-    """Generate content using real AI API"""
+    """Generate content using real AI API with improved parsing"""
     
-    # PROPER PROMPT TEMPLATES
+    # IMPROVED PROMPT TEMPLATES
     prompts = {
-        "google_ads": f"""Generate a high-converting Google Ads campaign for:
+        "google_ads": f"""Create a Google Ads campaign. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
 
-Business Type: {business_type}
-Product/Service: {product}
-Target Audience: {audience}
-Tone: {tone}
-
-Return ONLY a JSON object with these exact keys:
+Respond with ONLY this JSON (no markdown, no extra text):
 {{
-  "headline": "max 30 characters, attention-grabbing",
-  "description": "max 90 characters, benefit-focused",
-  "cta": "2-3 words, action-oriented",
-  "keywords": "7-10 SEO-optimized keywords separated by commas"
-}}
+  "headline": "compelling headline under 30 chars",
+  "description": "benefit-focused description under 90 chars",
+  "cta": "action phrase 2-3 words",
+  "keywords": "keyword1, keyword2, keyword3, keyword4, keyword5"
+}}""",
 
-Make it compelling and conversion-focused.""",
+        "facebook": f"""Create a Facebook ad. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
 
-        "facebook": f"""Create an engaging Facebook ad for:
-
-Business: {business_type}
-Product: {product}
-Audience: {audience}
-Tone: {tone}
-
-Return ONLY a JSON object with these exact keys:
+Respond with ONLY this JSON (no markdown, no extra text):
 {{
-  "headline": "10-15 words, scroll-stopping",
-  "body": "80-120 words, emotional connection with benefits",
-  "cta": "clear action phrase",
-  "hashtags": "5-7 relevant hashtags",
-  "image_suggestion": "brief description of ideal image"
-}}
+  "headline": "scroll-stopping headline",
+  "body": "engaging 80-120 word body text with emotional appeal",
+  "cta": "clear call to action",
+  "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5",
+  "image_suggestion": "image description"
+}}""",
 
-Focus on emotional triggers and social proof.""",
+        "instagram": f"""Create Instagram content. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
 
-        "instagram": f"""Create viral Instagram content for:
-
-Business: {business_type}
-Product: {product}
-Audience: {audience}
-Tone: {tone}
-
-Return ONLY a JSON object with these exact keys:
+Respond with ONLY this JSON (no markdown, no extra text):
 {{
-  "caption": "100-150 characters with hook in first line",
-  "hashtags": "10-15 trending hashtags mixing popular and niche",
-  "cta": "Instagram-native action",
-  "story_text": "15-20 words for story overlay"
-}}
+  "caption": "engaging caption with hook in first line, 100-150 chars",
+  "hashtags": "#tag1 #tag2 #tag3 #tag4 #tag5 #tag6 #tag7 #tag8 #tag9 #tag10",
+  "cta": "instagram native action",
+  "story_text": "story overlay text 15-20 words"
+}}""",
 
-Make it visual-first and engagement-optimized.""",
+        "seo": f"""Create SEO content. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
 
-        "seo": f"""Create SEO-optimized content for:
-
-Business: {business_type}
-Product: {product}
-Target Audience: {audience}
-Tone: {tone}
-
-Return ONLY a JSON object with these exact keys:
+Respond with ONLY this JSON (no markdown, no extra text):
 {{
-  "title": "50-60 characters, keyword-rich SEO title",
-  "meta_description": "150-160 characters, compelling with CTA",
-  "h1": "different from title, main heading",
-  "keywords": "10-15 primary and secondary keywords",
-  "url_slug": "SEO-friendly URL slug"
-}}
-
-Focus on search intent and ranking factors."""
+  "title": "SEO title 50-60 chars keyword-rich",
+  "meta_description": "compelling 150-160 char meta description",
+  "h1": "main heading different from title",
+  "keywords": "keyword1, keyword2, keyword3, keyword4, keyword5, keyword6",
+  "url_slug": "seo-friendly-url-slug"
+}}"""
     }
     
     prompt = prompts.get(platform, prompts["google_ads"])
     
-    # Call appropriate API
+    # Call API
     response = None
-    if api_key and len(api_key) > 10:  # Valid API key
+    if api_key and len(api_key) > 10:
         if api_provider == "OpenAI":
             response = call_openai_api(prompt, api_key, model, temperature, max_tokens)
         elif api_provider == "Groq":
@@ -283,16 +256,25 @@ Focus on search intent and ranking factors."""
         elif api_provider == "Anthropic":
             response = call_anthropic_api(prompt, api_key, model, temperature, max_tokens)
     
-    # Parse AI response or use fallback
+    # Parse AI response with better error handling
     if response:
         try:
-            # Clean JSON response
+            # Clean the response
             response_clean = response.strip()
-            if response_clean.startswith("```json"):
+            
+            # Remove markdown code blocks
+            if "```json" in response_clean:
                 response_clean = response_clean.split("```json")[1].split("```")[0].strip()
-            elif response_clean.startswith("```"):
+            elif "```" in response_clean:
                 response_clean = response_clean.split("```")[1].split("```")[0].strip()
             
+            # Remove any leading/trailing text
+            start = response_clean.find('{')
+            end = response_clean.rfind('}') + 1
+            if start != -1 and end > start:
+                response_clean = response_clean[start:end]
+            
+            # Parse JSON
             content = json.loads(response_clean)
             
             # Add performance metrics
@@ -301,55 +283,139 @@ Focus on search intent and ranking factors."""
             content["estimated_engagement"] = f"{round(3.0 + (hash(product) % 100) / 25, 1)}%"
             content["estimated_reach"] = f"{round(2.0 + (hash(product) % 100) / 10, 1)}K"
             content["estimated_ranking"] = "Top 10 potential"
+            content["generated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            content["source"] = f"{api_provider} API"
             
             return content
-        except:
-            pass  # Fall through to fallback
+            
+        except json.JSONDecodeError as e:
+            st.warning(f"⚠️ JSON parsing failed: {str(e)}")
+            st.info("📝 Raw API Response:")
+            st.code(response, language="text")
+            st.error("Using fallback mode instead...")
+        except Exception as e:
+            st.warning(f"⚠️ Error processing response: {str(e)}")
     
-    # FALLBACK: Use mock data if API fails
+    # FALLBACK: Use enhanced mock data
     return generate_content_fallback(business_type, product, audience, tone, platform)
 
 def generate_content_fallback(business_type, product, audience, tone, platform):
-    """Fallback mock content generator"""
-    templates = {
-        "google_ads": {
-            "headline": f"Best {product} - {audience}",
-            "description": f"Premium {product} for {audience}. {tone} service. Limited offer - Book now!",
-            "cta": "Get Started",
-            "keywords": f"{product}, {business_type}, {audience}, best {product}, affordable {product}, {product} near me, online {product}",
-            "estimated_ctr": "3.2%",
-            "quality_score": "8/10"
-        },
-        "facebook": {
-            "headline": f"🎯 {product} That {audience} Love!",
-            "body": f"Hey {audience}! 👋\n\nTired of ordinary {product.lower()}? We've revolutionized the {business_type.lower()} experience.\n\n✨ Why choose us?\n• {tone} approach\n• Proven results\n• Trusted by customers\n\nDon't settle for less!",
-            "cta": "Learn More",
-            "hashtags": f"#{product.replace(' ', '')} #{business_type.replace(' ', '')} #{audience.replace(' ', '')} #quality #trending",
-            "image_suggestion": f"High-quality image of {product} with happy {audience.lower()}",
-            "estimated_engagement": "4.5%"
-        },
-        "instagram": {
-            "caption": f"✨ The {product} {audience} Love ✨\n\n{tone} vibes only 💯\n\nLink in bio 🔗",
-            "hashtags": f"#{product.replace(' ', '')} #{business_type.replace(' ', '')} #instagood #viral #trending",
-            "cta": "Link in Bio",
-            "story_text": f"New {product} Alert! 🔥",
-            "estimated_reach": "2.8K"
-        },
-        "seo": {
-            "title": f"{product} for {audience} | {business_type} 2024",
-            "meta_description": f"Discover premium {product} for {audience}. Expert {business_type.lower()} with {tone.lower()} service. Rated highly by customers. Book consultation!",
-            "h1": f"Professional {product} Services for {audience}",
-            "keywords": f"{product}, {business_type}, {audience}, best {product}, {product} services, professional {business_type}",
-            "url_slug": f"{product.lower().replace(' ', '-')}-{audience.lower().replace(' ', '-')}",
-            "estimated_ranking": "Top 10 potential"
+    """Enhanced fallback content generator with realistic outputs"""
+    
+    # Better templates with more variety
+    import random
+    
+    if platform == "google_ads":
+        headlines = [
+            f"Premium {product} for {audience}",
+            f"Best {product} - {audience}",
+            f"Top {product} Services",
+            f"{product} Experts | {business_type}",
+            f"#1 {product} Provider"
+        ]
+        descriptions = [
+            f"Get premium {product} designed for {audience}. {tone} service with proven results. Limited time offer!",
+            f"Transform your experience with our {product}. Trusted by {audience}. Book your free consultation now!",
+            f"Professional {product} services for {audience}. Fast, reliable, {tone.lower()}. Start today!",
+            f"Discover why {audience} choose our {product}. Expert {business_type.lower()} team. Call now!"
+        ]
+        ctas = ["Get Started", "Book Now", "Learn More", "Try Free", "Get Quote"]
+        
+        return {
+            "headline": random.choice(headlines)[:30],
+            "description": random.choice(descriptions)[:90],
+            "cta": random.choice(ctas),
+            "keywords": f"{product}, {business_type}, {audience}, best {product}, affordable {product}, {product} services, professional {business_type}, top {product}",
+            "estimated_ctr": f"{round(random.uniform(2.5, 8.5), 1)}%",
+            "quality_score": f"{random.randint(7, 10)}/10",
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "Fallback Mode"
         }
+    
+    elif platform == "facebook":
+        emojis = ["🎯", "✨", "🚀", "💯", "⭐", "🔥", "💪", "🌟"]
+        headlines = [
+            f"{random.choice(emojis)} {product} That {audience} Love!",
+            f"{random.choice(emojis)} Transform Your Life with {product}",
+            f"{random.choice(emojis)} The {product} Revolution Starts Here",
+            f"{random.choice(emojis)} Exclusive {product} for {audience}"
+        ]
+        
+        bodies = [
+            f"Hey {audience}! 👋\n\nLooking for the perfect {product}? You've found it!\n\n✨ Why choose us?\n• {tone} approach that works\n• Proven results you can see\n• Trusted by hundreds of satisfied customers\n• Fast, reliable service\n\nDon't settle for ordinary. Experience the difference today!\n\n💬 Comment 'INTERESTED' or message us to learn more!",
+            
+            f"Attention {audience}! 🎯\n\n{product} doesn't have to be complicated. We make it simple, {tone.lower()}, and effective.\n\n🌟 What you get:\n• Expert guidance every step\n• Results that last\n• Support when you need it\n• Affordable pricing\n\nReady to start? Drop a 👍 below or send us a message!",
+            
+            f"🚀 Calling all {audience}!\n\nYour search for the best {product} ends here. Our {business_type.lower()} combines quality, expertise, and a {tone.lower()} touch.\n\n💪 Join hundreds who already made the switch:\n✓ Fast results\n✓ Professional service\n✓ Guaranteed satisfaction\n\nClick 'Learn More' or DM us now!"
+        ]
+        
+        return {
+            "headline": random.choice(headlines),
+            "body": random.choice(bodies),
+            "cta": random.choice(["Learn More", "Get Started", "Shop Now", "Sign Up", "Contact Us"]),
+            "hashtags": f"#{product.replace(' ', '')} #{business_type.replace(' ', '')} #{audience.replace(' ', '')} #quality #trending #lifestyle #success",
+            "image_suggestion": f"High-quality lifestyle image showing happy {audience.lower()} using {product}, bright colors, authentic emotions",
+            "estimated_engagement": f"{round(random.uniform(3.0, 7.5), 1)}%",
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "Fallback Mode"
+        }
+    
+    elif platform == "instagram":
+        emojis = ["✨", "💫", "🌟", "⚡", "🔥", "💎", "🎯", "🚀"]
+        
+        captions = [
+            f"{random.choice(emojis)} The {product} Everyone's Talking About {random.choice(emojis)}\n\n{tone} vibes only! Perfect for {audience} 💯\n\nTap the link in bio to discover more 👆",
+            
+            f"{random.choice(emojis)} Your New Favorite {product} {random.choice(emojis)}\n\nDesigned for {audience} who want the best ✨\n\nSwipe for details → Link in bio 🔗",
+            
+            f"POV: You just found the perfect {product} {random.choice(emojis)}\n\n{tone} | Premium | Trusted by {audience}\n\nGet yours now - link in bio! 💫",
+            
+            f"{random.choice(emojis)} Game-Changer Alert! {random.choice(emojis)}\n\n{product} that actually works for {audience}\n\nDon't believe us? Check the reviews 👀\nLink in bio! 🔗"
+        ]
+        
+        hashtag_lists = [
+            f"#{product.replace(' ', '')} #{business_type.replace(' ', '')} #{audience.replace(' ', '')} #instagood #viral #trending #lifestyle #quality #motivation #success #goals #inspiration #beautiful",
+            
+            f"#{product.replace(' ', '')} #{business_type.replace(' ', '')} #reels #explore #fyp #trending #viral #lifestyle #{audience.replace(' ', '')} #quality #premium #luxury #style",
+            
+            f"#{product.replace(' ', '')} #{business_type.replace(' ', '')} #{audience.replace(' ', '')} #instadaily #photooftheday #love #instagood #fashion #beautiful #happy #cute #follow #like"
+        ]
+        
+        story_texts = [
+            f"NEW: {product} Alert! 🔥 Swipe up!",
+            f"Limited Time: {product} Deal! Tap here 👆",
+            f"{product} for {audience} - Link in bio! ✨",
+            f"This {product} is 🔥 Get yours now!"
+        ]
+        
+        return {
+            "caption": random.choice(captions),
+            "hashtags": random.choice(hashtag_lists),
+            "cta": random.choice(["Link in Bio", "Swipe Up", "Tap Here", "Shop Now"]),
+            "story_text": random.choice(story_texts),
+            "estimated_reach": f"{round(random.uniform(2.0, 6.5), 1)}K",
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "Fallback Mode"
+        }
+    
+    elif platform == "seo":
+        return {
+            "title": f"{product} for {audience} | Professional {business_type} 2024",
+            "meta_description": f"Discover premium {product} designed specifically for {audience}. Expert {business_type.lower()} with {tone.lower()} service, proven results & 100% satisfaction guarantee. Book your free consultation today!",
+            "h1": f"Professional {product} Services for {audience}",
+            "keywords": f"{product}, {business_type}, {audience}, best {product}, {product} services, professional {business_type}, affordable {product}, top {product}, {product} near me, {product} online, premium {product}",
+            "url_slug": f"{product.lower().replace(' ', '-')}-for-{audience.lower().replace(' ', '-')}",
+            "estimated_ranking": "Top 10 potential",
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "Fallback Mode"
+        }
+    
+    # Default fallback
+    return {
+        "error": "Platform not recognized",
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "source": "Fallback Mode"
     }
-    
-    result = templates.get(platform, templates["google_ads"])
-    result["generated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    result["source"] = "Fallback Mode"
-    
-    return result
 
 # ==================== PDF EXPORT ====================
 def create_pdf(history_items):
