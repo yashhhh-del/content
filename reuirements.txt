@@ -1,0 +1,7 @@
+streamlit
+openai
+groq
+anthropic
+spacy
+reportlab
+python-docx
