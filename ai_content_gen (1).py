@@ -305,7 +305,7 @@ def login_page():
 
 # ==================== MAIN APP ====================
 def main_app():
-    history = load_from_db(st.session_state.user_id) if st.session_state.user_id and st.session_state.user_id > 0 else []
+    history = load_from_db(st.session_state.user_id) if st.session_state.user_id is not None else []
     
     col1, col2 = st.columns([4, 1])
     with col1:
@@ -364,7 +364,8 @@ def generate_page(history):
             
             result = generate_content_with_ai(business, product, audience, tone, platform, st.session_state.get('api_key', ''), st.session_state.get('api_provider', 'Groq'), model, temp, tokens)
             
-            if st.session_state.user_id and st.session_state.user_id > 0:
+            # Save to database (works for demo mode too)
+            if st.session_state.user_id is not None:
                 save_to_db(st.session_state.user_id, business, product, audience, tone, platform, result)
             
             st.success("✅ Generated!")
