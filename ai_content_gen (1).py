@@ -108,25 +108,25 @@ def call_anthropic_api(prompt, api_key, model="claude-sonnet-4-20250514", temper
 # ==================== CONTENT GENERATION ====================
 def generate_content_with_ai(business_type, product, audience, tone, platform, api_key, api_provider, model, temperature, max_tokens):
     prompts = {
-        "google_ads": f"""Create Google Ads. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
+        "google_ads": f"""Create Google Ads campaign. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
 
-Return ONLY JSON:
-{{"headline": "under 30 chars", "description": "under 90 chars", "cta": "2-3 words", "keywords": "5 keywords"}}""",
+Return ONLY JSON (minimum 150 characters for description):
+{{"headline": "compelling 25-30 char headline", "description": "detailed 150-200 character benefit-focused description with clear value proposition and urgency", "cta": "strong 2-3 word action", "keywords": "10 relevant high-converting keywords comma separated"}}""",
 
         "facebook": f"""Create Facebook ad. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
 
-Return ONLY JSON:
-{{"headline": "catchy headline", "body": "80-120 words engaging", "cta": "action", "hashtags": "5 hashtags", "image_suggestion": "description"}}""",
+Return ONLY JSON (minimum 200 characters for body):
+{{"headline": "attention-grabbing emotional headline", "body": "engaging 200-300 character body text with storytelling, emotional appeal, clear benefits, social proof, and strong call to action that resonates with the target audience", "cta": "clear action phrase", "hashtags": "10 trending relevant hashtags", "image_suggestion": "detailed image description"}}""",
 
         "instagram": f"""Create Instagram post. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
 
-Return ONLY JSON:
-{{"caption": "100-150 chars", "hashtags": "10 hashtags", "cta": "action", "story_text": "15-20 words"}}""",
+Return ONLY JSON (minimum 150 characters for caption):
+{{"caption": "engaging 150-250 character caption with strong hook, value proposition, emotional connection, and clear benefit for the audience", "hashtags": "15 trending relevant hashtags", "cta": "instagram-native action", "story_text": "compelling 20-30 word story text with urgency"}}""",
 
         "seo": f"""Create SEO content. Business: {business_type}, Product: {product}, Audience: {audience}, Tone: {tone}
 
-Return ONLY JSON:
-{{"title": "50-60 chars", "meta_description": "150-160 chars", "h1": "heading", "keywords": "6 keywords", "url_slug": "slug"}}"""
+Return ONLY JSON (minimum 150 characters for meta):
+{{"title": "keyword-rich 55-65 character SEO title", "meta_description": "compelling 155-165 character meta description with keywords, benefits, call to action, and strong relevance to search intent", "h1": "engaging different h1 heading", "keywords": "15 high-value SEO keywords including long-tail", "url_slug": "seo-optimized-url-slug"}}"""
     }
     
     prompt = prompts.get(platform, prompts["google_ads"])
@@ -169,43 +169,73 @@ Return ONLY JSON:
 def generate_fallback(business_type, product, audience, tone, platform):
     import random
     if platform == "google_ads":
+        descriptions = [
+            f"Discover premium {product} designed specifically for {audience}. Our {tone.lower()} {business_type.lower()} service delivers proven results with expert guidance. Limited time offer - transform your experience today with guaranteed satisfaction!",
+            f"Experience the best {product} for {audience}. {tone} service backed by years of expertise. Join thousands of satisfied customers who trust our {business_type.lower()} for quality, reliability, and outstanding results. Book your free consultation now!",
+            f"Transform your life with our {product} tailored for {audience}. Our {business_type.lower()} combines cutting-edge solutions with {tone.lower()} care. Fast results, affordable pricing, 100% satisfaction guaranteed. Don't wait - start your journey today!"
+        ]
         return {
-            "headline": f"Top {product} for {audience}"[:30],
-            "description": f"Premium {product} with {tone.lower()} service. Trusted by {audience}. Start today!"[:90],
-            "cta": random.choice(["Get Started", "Learn More", "Book Now"]),
-            "keywords": f"{product}, {business_type}, {audience}, best {product}",
+            "headline": f"Premium {product} for {audience}"[:30],
+            "description": random.choice(descriptions)[:200],
+            "cta": random.choice(["Get Started Today", "Book Free Consultation", "Learn More Now", "Claim Your Offer"]),
+            "keywords": f"{product}, {business_type}, {audience}, best {product}, affordable {product}, professional {product} services, top rated {business_type}, {product} near me, expert {product}, quality {business_type}",
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "source": "🤖 Fallback Mode"
         }
     elif platform == "facebook":
+        bodies = [
+            f"Hey {audience}! 👋 Looking for the perfect {product}? You've found it!\n\n✨ Why choose our {business_type}?\n• {tone} approach that actually works\n• Proven results backed by hundreds of success stories\n• Expert team with years of experience\n• Fast, reliable, and affordable service\n• 100% satisfaction guaranteed\n\nDon't settle for ordinary when you can have extraordinary! Join our community of happy customers today.\n\n💬 Comment 'INTERESTED' below or send us a message to learn more! Limited spots available.",
+            
+            f"Attention {audience}! 🎯\n\n{product} doesn't have to be complicated or expensive. Our {business_type.lower()} makes it simple, {tone.lower()}, and incredibly effective.\n\n🌟 What makes us different:\n• Personalized solutions designed for YOU\n• Results that last and transform lives\n• Support whenever you need it\n• Transparent, fair pricing\n• Money-back guarantee\n\nReady to make a change? This is your sign! Drop a 👍 below or send us a DM. Your journey to success starts here!",
+            
+            f"🚀 Calling all {audience}!\n\nYour search for exceptional {product} ends right here. Our {business_type.lower()} perfectly combines quality, expertise, innovation, and that {tone.lower()} touch you deserve.\n\n💪 Join hundreds who've already made the switch:\n✓ Lightning-fast results you can see\n✓ Professional service that exceeds expectations\n✓ Guaranteed satisfaction or money back\n✓ Community support every step\n\nClick 'Learn More' to discover why we're the #1 choice, or DM us now for exclusive offers!"
+        ]
         return {
-            "headline": f"✨ {product} for {audience}!",
-            "body": f"Looking for {product}? Our {tone.lower()} {business_type.lower()} offers the best solution for {audience}. Join hundreds of satisfied customers today!",
-            "cta": "Learn More",
-            "hashtags": f"#{product.replace(' ','')} #{business_type.replace(' ','')} #quality #trending",
-            "image_suggestion": f"Happy {audience.lower()} using {product}",
+            "headline": f"✨ Amazing {product} That {audience} Absolutely Love!",
+            "body": random.choice(bodies),
+            "cta": random.choice(["Learn More Today", "Get Started Now", "Shop Now", "Sign Up Free", "Contact Us Today"]),
+            "hashtags": f"#{product.replace(' ','')} #{business_type.replace(' ','')} #{audience.replace(' ','')} #quality #premium #trending #viral #lifestyle #success #motivation #goals #transformation #community",
+            "image_suggestion": f"High-quality lifestyle image showing happy, diverse {audience.lower()} successfully using {product} in a bright, modern setting with authentic smiles and natural lighting, conveying trust and results",
+            "estimated_engagement": f"{round(random.uniform(3.0, 7.5), 1)}%",
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "source": "🤖 Fallback Mode"
         }
     elif platform == "instagram":
+        captions = [
+            f"✨ The {product} Everyone's Raving About! ✨\n\nPerfect for {audience} who demand the best. Our {tone.lower()} approach delivers real results that transform lives. 💯\n\nSwipe to see why we're different 👉\nTap the link in bio to start your journey! 🔗\n\nTag a friend who needs this! 👇",
+            
+            f"🌟 Your New Favorite {product} Just Dropped 🌟\n\nSpecially designed for ambitious {audience} who refuse to settle. Experience the difference that {tone.lower()} expertise makes! ✨\n\nWhat you'll love:\n• Real, lasting results 💪\n• Expert guidance 🎯\n• Amazing community 🤝\n\nReady? Link in bio! Don't miss out 🔥",
+            
+            f"POV: You just discovered the perfect {product} 🎯\n\n{tone} | Premium | Trusted by thousands of {audience}\n\nThis is what you've been searching for. Results that actually last, service that actually cares. 💫\n\nYour transformation starts here 👆\nLink in bio - limited availability! ⚡",
+            
+            f"🔥 Game-Changer Alert for {audience}! 🔥\n\n{product} that actually delivers on its promises. Revolutionary {business_type.lower()} experience with proven results. 💯\n\nWhy wait? Success is just a click away!\n\n✓ Check the reviews 👀\n✓ See the results 💪\n✓ Join the movement 🚀\n\nLink in bio NOW! ⚡"
+        ]
         return {
-            "caption": f"✨ {product} designed for {audience} 💯\n\n{tone} vibes! Link in bio 👆",
-            "hashtags": f"#{product.replace(' ','')} #{business_type.replace(' ','')} #instagood #trending #lifestyle #viral #explore #fyp #motivation #goals",
-            "cta": "Link in Bio",
-            "story_text": f"{product} Alert! 🔥 Tap here",
+            "caption": random.choice(captions),
+            "hashtags": f"#{product.replace(' ','')} #{business_type.replace(' ','')} #{audience.replace(' ','')} #instagood #viral #trending #lifestyle #quality #motivation #success #goals #inspiration #beautiful #amazing #explore #fyp #reels #love",
+            "cta": random.choice(["Link in Bio 🔗", "Swipe Up Now ⬆️", "Tap Here 👆", "Shop Now 🛍️", "DM Us 💬"]),
+            "story_text": f"🔥 EXCLUSIVE: New {product} Alert! Perfect for {audience}. Limited time only - swipe up before it's gone! ⚡",
+            "estimated_reach": f"{round(random.uniform(2.0, 6.5), 1)}K",
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "source": "🤖 Fallback Mode"
         }
     else:  # SEO
         return {
-            "title": f"{product} for {audience} | {business_type} 2024",
-            "meta_description": f"Premium {product} for {audience}. {tone} {business_type.lower()} service with proven results. Book consultation today!",
-            "h1": f"Professional {product} Services",
-            "keywords": f"{product}, {business_type}, {audience}, best {product}, {product} services",
-            "url_slug": f"{product.lower().replace(' ','-')}-{audience.lower().replace(' ','-')}",
+            "title": f"Best {product} for {audience} | Professional {business_type} Services 2024",
+            "meta_description": f"Discover premium {product} designed specifically for {audience}. Our expert {business_type.lower()} delivers {tone.lower()} service with proven results, guaranteed satisfaction & free consultation. Transform your experience today!",
+            "h1": f"Professional {product} Services Tailored for {audience}",
+            "keywords": f"{product}, {business_type}, {audience}, best {product}, professional {product} services, affordable {product}, top rated {business_type}, {product} near me, expert {product}, quality {business_type}, {product} online, premium {product}, certified {business_type}, {product} consultation, leading {product} provider",
+            "url_slug": f"{product.lower().replace(' ','-')}-for-{audience.lower().replace(' ','-')}-professional-services",
+            "estimated_ranking": "Top 10 potential",
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "source": "🤖 Fallback Mode"
         }
+    
+    return {
+        "error": "Platform not recognized",
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "source": "🤖 Fallback Mode"
+    }
 
 # ==================== DATABASE FUNCTIONS ====================
 def save_to_db(user_id, business_type, product, audience, tone, platform, content):
