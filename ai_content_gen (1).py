@@ -45,6 +45,7 @@ def call_openai_api(prompt, api_key, model="gpt-4o-mini", temperature=0.7, max_t
     """OpenAI API - UPDATED TO LATEST"""
     try:
         from openai import OpenAI
+        
         client = OpenAI(api_key=api_key)
         response = client.chat.completions.create(
             model=model,
@@ -56,11 +57,17 @@ def call_openai_api(prompt, api_key, model="gpt-4o-mini", temperature=0.7, max_t
             max_tokens=max_tokens
         )
         return response.choices[0].message.content
-    except ImportError:
-        st.warning("⚠️ Run: pip install openai")
+    except ImportError as e:
+        st.warning(f"⚠️ OpenAI not installed. Run: pip install openai")
+        st.info(f"Error details: {str(e)}")
+        return None
+    except AttributeError as e:
+        st.error(f"OpenAI version issue. Run: pip install --upgrade openai")
+        st.info(f"Error: {str(e)}")
         return None
     except Exception as e:
-        st.error(f"OpenAI Error: {str(e)}")
+        st.error(f"OpenAI API Error: {str(e)}")
+        st.info("Check your API key or switch to Groq in Settings")
         return None
 
 def call_groq_api(prompt, api_key, model="llama-3.3-70b-versatile", temperature=0.7, max_tokens=800):
