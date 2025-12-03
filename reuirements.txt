@@ -1,7 +1,7 @@
 streamlit
-openai
 groq
+openai
 anthropic
-spacy
 reportlab
 python-docx
+spacy
