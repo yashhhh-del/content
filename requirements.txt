@@ -5,3 +5,6 @@ anthropic
 reportlab
 python-docx
 spacy
+python-dotenv
+nltk
+
