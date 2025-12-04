@@ -246,7 +246,40 @@ div[data-testid="stExpander"] div[role="button"] {
 div[data-testid="stExpander"] div[role="button"] p {
     font-size: 1.1rem;
     font-weight: 600;
+    color: #1a1a2e !important;
+}
+
+/* Force dark text in content areas */
+div[data-testid="stExpander"] .stMarkdown p,
+div[data-testid="stExpander"] .stMarkdown span,
+div[data-testid="stExpander"] .stMarkdown li {
+    color: #1a1a2e !important;
+}
+
+div[data-testid="stExpander"] .stMarkdown h1,
+div[data-testid="stExpander"] .stMarkdown h2,
+div[data-testid="stExpander"] .stMarkdown h3,
+div[data-testid="stExpander"] .stMarkdown h4 {
+    color: #667eea !important;
+}
+
+div[data-testid="stExpander"] .stMarkdown strong {
+    color: #667eea !important;
+}
+
+/* Main content area text */
+.main .block-container p,
+.main .block-container span,
+.main .block-container li {
     color: #1a1a2e;
+}
+
+/* Ensure readability in all cards */
+.feature-card p,
+.feature-card span,
+.step-card p,
+.result-card p {
+    color: #333 !important;
 }
 
 /* Content Results Card */
@@ -1470,35 +1503,39 @@ def display_content_results(results, platform_type):
                     for i, item in enumerate(section_content, 1):
                         if isinstance(item, dict):
                             st.markdown(f"""
-                            <div style="background: #f8f9ff; padding: 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid #667eea;">
+                            <div style="background: #f0f4ff; padding: 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid #667eea;">
                             """, unsafe_allow_html=True)
                             for key, value in item.items():
-                                st.markdown(f"**{key}:** {value}")
+                                st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0;'><strong style='color: #667eea;'>{key}:</strong> {value}</p>", unsafe_allow_html=True)
                             st.markdown("</div>", unsafe_allow_html=True)
                         else:
                             st.markdown(f"""
-                            <div style="background: #f8f9ff; padding: 0.8rem 1rem; border-radius: 8px; margin: 0.3rem 0; display: flex; align-items: center;">
-                                <span style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; margin-right: 1rem;">{i}</span>
-                                <span>{item}</span>
+                            <div style="background: #f0f4ff; padding: 0.8rem 1rem; border-radius: 8px; margin: 0.5rem 0; border-left: 3px solid #667eea;">
+                                <span style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; margin-right: 0.8rem; display: inline-block;">{i}</span>
+                                <span style="color: #1a1a2e; font-size: 1rem;">{item}</span>
                             </div>
                             """, unsafe_allow_html=True)
                 elif isinstance(section_content, dict):
                     for key, value in section_content.items():
-                        st.markdown(f"**{key.replace('_', ' ').title()}:**")
+                        st.markdown(f"<h4 style='color: #667eea; margin: 1rem 0 0.5rem 0;'>{key.replace('_', ' ').title()}:</h4>", unsafe_allow_html=True)
                         if isinstance(value, list):
-                            for item in value:
+                            for idx, item in enumerate(value, 1):
                                 if isinstance(item, dict):
                                     for k, v in item.items():
-                                        st.markdown(f"  - **{k}:** {v}")
+                                        st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0 0.3rem 1rem;'>• <strong style='color: #667eea;'>{k}:</strong> {v}</p>", unsafe_allow_html=True)
                                 else:
-                                    st.markdown(f"  - {item}")
+                                    st.markdown(f"""
+                                    <div style="background: #f0f4ff; padding: 0.6rem 1rem; border-radius: 8px; margin: 0.4rem 0; border-left: 3px solid #667eea;">
+                                        <span style="color: #1a1a2e;">{idx}. {item}</span>
+                                    </div>
+                                    """, unsafe_allow_html=True)
                         elif isinstance(value, dict):
                             for k, v in value.items():
-                                st.markdown(f"  - **{k}:** {v}")
+                                st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0 0.3rem 1rem;'>• <strong style='color: #667eea;'>{k}:</strong> {v}</p>", unsafe_allow_html=True)
                         else:
-                            st.markdown(f"  {value}")
+                            st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0 0.3rem 1rem;'>{value}</p>", unsafe_allow_html=True)
                 else:
-                    st.write(section_content)
+                    st.markdown(f"<p style='color: #1a1a2e;'>{section_content}</p>", unsafe_allow_html=True)
 
 def render_generate_page():
     """Render the content generation page"""
