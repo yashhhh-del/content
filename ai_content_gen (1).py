@@ -1481,7 +1481,86 @@ def display_content_results(results, platform_type):
     </div>
     """, unsafe_allow_html=True)
     
+    # Helper function to check if key contains hashtags
+    def is_hashtag_field(key):
+        return 'hashtag' in key.lower()
+    
+    # Helper function to check if key contains headlines
+    def is_headline_field(key):
+        return 'headline' in key.lower() or 'headlines' in key.lower()
+    
+    # Helper function to display hashtags as comma-separated
+    def display_hashtags(hashtags_list):
+        if isinstance(hashtags_list, list):
+            hashtags_str = ", ".join(str(tag) for tag in hashtags_list)
+            st.markdown(f"""
+            <div style="background: #f0f4ff; padding: 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid #667eea;">
+                <p style="color: #1a1a2e; margin: 0; line-height: 1.8; word-wrap: break-word;">{hashtags_str}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="background: #f0f4ff; padding: 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid #667eea;">
+                <p style="color: #1a1a2e; margin: 0;">{hashtags_list}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Helper function to display headlines prominently
+    def display_headlines(headlines_list, section_name=""):
+        if isinstance(headlines_list, list):
+            for i, headline in enumerate(headlines_list, 1):
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 1.2rem; border-radius: 12px; margin: 0.6rem 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); display: flex; align-items: center;">
+                    <span style="background: white; color: #667eea; padding: 0.3rem 0.7rem; border-radius: 50%; font-size: 0.9rem; font-weight: 700; margin-right: 1rem; min-width: 30px; text-align: center;">{i}</span>
+                    <span style="color: white; font-size: 1.05rem; font-weight: 500; line-height: 1.4;">{headline}</span>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    # Helper function to display regular list items
+    def display_list_items(items_list, show_numbers=True):
+        if isinstance(items_list, list):
+            for i, item in enumerate(items_list, 1):
+                if isinstance(item, dict):
+                    st.markdown(f"""
+                    <div style="background: #f0f4ff; padding: 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid #667eea;">
+                    """, unsafe_allow_html=True)
+                    for key, value in item.items():
+                        st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0;'><strong style='color: #667eea;'>{key}:</strong> {value}</p>", unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                else:
+                    if show_numbers:
+                        st.markdown(f"""
+                        <div style="background: #f0f4ff; padding: 0.8rem 1rem; border-radius: 8px; margin: 0.5rem 0; border-left: 3px solid #667eea;">
+                            <span style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; margin-right: 0.8rem; display: inline-block;">{i}</span>
+                            <span style="color: #1a1a2e; font-size: 1rem;">{item}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
+                        <div style="background: #f0f4ff; padding: 0.8rem 1rem; border-radius: 8px; margin: 0.5rem 0; border-left: 3px solid #667eea;">
+                            <span style="color: #1a1a2e; font-size: 1rem;">• {item}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+    
+    # Process and display content
     if isinstance(results, dict):
+        # First, collect all headlines from all sections to display first
+        all_headlines = []
+        
+        for section_name, section_content in results.items():
+            if isinstance(section_content, dict):
+                for key, value in section_content.items():
+                    if is_headline_field(key) and isinstance(value, list):
+                        all_headlines.extend(value)
+            elif isinstance(section_content, list) and is_headline_field(section_name):
+                all_headlines.extend(section_content)
+        
+        # Display all headlines first if found
+        if all_headlines:
+            with st.expander("📰 All Headlines", expanded=True):
+                display_headlines(all_headlines)
+        
+        # Now display other sections
         for section_name, section_content in results.items():
             icon_map = {
                 'google_ads': '🎯',
@@ -1498,40 +1577,47 @@ def display_content_results(results, platform_type):
             }
             icon = icon_map.get(section_name.lower(), '📌')
             
-            with st.expander(f"{icon} {section_name.replace('_', ' ').title()}", expanded=True):
+            # Skip if it's only headlines (already shown)
+            if is_headline_field(section_name) and isinstance(section_content, list):
+                continue
+            
+            with st.expander(f"{icon} {section_name.replace('_', ' ').title()}", expanded=False):
                 if isinstance(section_content, list):
-                    for i, item in enumerate(section_content, 1):
-                        if isinstance(item, dict):
-                            st.markdown(f"""
-                            <div style="background: #f0f4ff; padding: 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid #667eea;">
-                            """, unsafe_allow_html=True)
-                            for key, value in item.items():
-                                st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0;'><strong style='color: #667eea;'>{key}:</strong> {value}</p>", unsafe_allow_html=True)
-                            st.markdown("</div>", unsafe_allow_html=True)
-                        else:
-                            st.markdown(f"""
-                            <div style="background: #f0f4ff; padding: 0.8rem 1rem; border-radius: 8px; margin: 0.5rem 0; border-left: 3px solid #667eea;">
-                                <span style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; margin-right: 0.8rem; display: inline-block;">{i}</span>
-                                <span style="color: #1a1a2e; font-size: 1rem;">{item}</span>
-                            </div>
-                            """, unsafe_allow_html=True)
+                    # Check if it's hashtags
+                    if is_hashtag_field(section_name):
+                        display_hashtags(section_content)
+                    else:
+                        display_list_items(section_content)
+                        
                 elif isinstance(section_content, dict):
-                    for key, value in section_content.items():
-                        st.markdown(f"<h4 style='color: #667eea; margin: 1rem 0 0.5rem 0;'>{key.replace('_', ' ').title()}:</h4>", unsafe_allow_html=True)
+                    # Sort keys to show headlines first within each section
+                    sorted_keys = sorted(section_content.keys(), key=lambda x: (0 if is_headline_field(x) else 1, x))
+                    
+                    for key in sorted_keys:
+                        value = section_content[key]
+                        
+                        # Skip headlines as they're already shown at top
+                        if is_headline_field(key):
+                            continue
+                        
+                        st.markdown(f"<h4 style='color: #667eea; margin: 1.5rem 0 0.5rem 0; font-family: Poppins, sans-serif;'>{key.replace('_', ' ').title()}</h4>", unsafe_allow_html=True)
+                        
                         if isinstance(value, list):
-                            for idx, item in enumerate(value, 1):
-                                if isinstance(item, dict):
-                                    for k, v in item.items():
-                                        st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0 0.3rem 1rem;'>• <strong style='color: #667eea;'>{k}:</strong> {v}</p>", unsafe_allow_html=True)
-                                else:
-                                    st.markdown(f"""
-                                    <div style="background: #f0f4ff; padding: 0.6rem 1rem; border-radius: 8px; margin: 0.4rem 0; border-left: 3px solid #667eea;">
-                                        <span style="color: #1a1a2e;">{idx}. {item}</span>
-                                    </div>
-                                    """, unsafe_allow_html=True)
+                            # Check if it's hashtags
+                            if is_hashtag_field(key):
+                                display_hashtags(value)
+                            else:
+                                display_list_items(value)
                         elif isinstance(value, dict):
                             for k, v in value.items():
-                                st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0 0.3rem 1rem;'>• <strong style='color: #667eea;'>{k}:</strong> {v}</p>", unsafe_allow_html=True)
+                                if isinstance(v, list):
+                                    st.markdown(f"<p style='color: #667eea; font-weight: 600; margin: 1rem 0 0.3rem 0;'>{k.replace('_', ' ').title()}:</p>", unsafe_allow_html=True)
+                                    if is_hashtag_field(k):
+                                        display_hashtags(v)
+                                    else:
+                                        display_list_items(v, show_numbers=False)
+                                else:
+                                    st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0 0.3rem 1rem;'>• <strong style='color: #667eea;'>{k}:</strong> {v}</p>", unsafe_allow_html=True)
                         else:
                             st.markdown(f"<p style='color: #1a1a2e; margin: 0.3rem 0 0.3rem 1rem;'>{value}</p>", unsafe_allow_html=True)
                 else:
